@@ -91,7 +91,7 @@ const History = () => {
               color="error"
               variant="outlined"
               onClick={handleClearAll}
-              sx={{ borderRadius: 2, fontSize: "0.78rem" }}
+              sx={{ borderRadius: 2, fontSize: "0.78rem", margin: 2 }}
             >
               Clear all
             </Button>
@@ -108,7 +108,7 @@ const History = () => {
           <Box
             textAlign="center"
             py={10}
-            sx={{ border: "1px dashed #cbd5e1", borderRadius: 3 }}
+            sx={{ border: "1px dashed #cbd5e1", borderRadius: 3, padding: 2 }}
           >
             <LinkOffIcon
               sx={{ fontSize: 40, color: "text.secondary", mb: 1.5 }}

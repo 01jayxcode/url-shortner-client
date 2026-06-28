@@ -19,10 +19,15 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
   <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    minHeight="60vh"
+    sx={{
+      position: "fixed",
+      inset: 0,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      bgcolor: "rgba(255,255,255,0.5)", // optional overlay
+      zIndex: 9999,
+    }}
   >
     <CircularProgress />
   </Box>
