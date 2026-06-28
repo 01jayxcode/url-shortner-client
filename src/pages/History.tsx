@@ -10,6 +10,7 @@ import {
   Button,
   Divider,
   Fade,
+  CircularProgress,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import BarChartIcon from "@mui/icons-material/BarChart";
@@ -17,16 +18,29 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DeleteOutlineIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { getMyLinks } from "../api/urlApi";
 import type { ShortenResponse } from "../types/url.types";
 
 const History = () => {
   const navigate = useNavigate();
-  const [history, setHistory] = useState<ShortenResponse[]>(
-    JSON.parse(localStorage.getItem("url_history") || "[]"),
-  );
+  const { user } = useAuth();
+  const [history, setHistory] = useState<ShortenResponse[]>([]);
+  const [loading, setLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setLoading(true);
+      getMyLinks()
+        .then(setHistory)
+        .finally(() => setLoading(false));
+    } else {
+      setHistory(JSON.parse(localStorage.getItem("url_history") || "[]"));
+    }
+  }, [user]);
 
   const handleCopy = (url: string, code: string) => {
     navigator.clipboard.writeText(url);
@@ -35,12 +49,14 @@ const History = () => {
   };
 
   const handleDelete = (code: string) => {
+    if (user) return; // DB links — no local delete
     const updated = history.filter((item) => item.short_code !== code);
     setHistory(updated);
     localStorage.setItem("url_history", JSON.stringify(updated));
   };
 
   const handleClearAll = () => {
+    if (user) return;
     setHistory([]);
     localStorage.removeItem("url_history");
   };
@@ -62,13 +78,14 @@ const History = () => {
         >
           <Box>
             <Typography variant="h6" fontWeight={700}>
-              Link History
+              {user ? "My Links" : "Link History"}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {history.length} link{history.length !== 1 ? "s" : ""} created
+              {history.length} link{history.length !== 1 ? "s" : ""}
+              {!user && " · Login to sync across devices"}
             </Typography>
           </Box>
-          {history.length > 0 && (
+          {!user && history.length > 0 && (
             <Button
               size="small"
               color="error"
@@ -81,7 +98,13 @@ const History = () => {
           )}
         </Box>
 
-        {history.length === 0 ? (
+        {loading && (
+          <Box display="flex" justifyContent="center" py={8}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!loading && history.length === 0 && (
           <Box
             textAlign="center"
             py={10}
@@ -93,101 +116,92 @@ const History = () => {
             <Typography color="text.secondary" fontWeight={500}>
               No links yet
             </Typography>
-            <Typography variant="body2" color="text.secondary" mb={3}>
-              Shorten your first URL to see it here
-            </Typography>
             <Button
               variant="contained"
+              sx={{ mt: 2, borderRadius: 2 }}
               onClick={() => navigate("/")}
-              sx={{ borderRadius: 2 }}
             >
               Shorten a link
             </Button>
           </Box>
-        ) : (
-          <Box display="flex" flexDirection="column" gap={2}>
-            {history.map((item, i) => (
-              <Fade
-                in
-                key={item.short_code}
-                style={{ transitionDelay: `${i * 40}ms` }}
-              >
-                <Card sx={{ border: "1px solid #e2e8f0", boxShadow: "none" }}>
-                  <CardContent
-                    sx={{ p: { xs: 2, sm: 2.5 }, "&:last-child": { pb: 2.5 } }}
+        )}
+
+        <Box display="flex" flexDirection="column" gap={2}>
+          {history.map((item, i) => (
+            <Fade
+              in
+              key={item.short_code}
+              style={{ transitionDelay: `${i * 40}ms` }}
+            >
+              <Card sx={{ border: "1px solid #e2e8f0", boxShadow: "none" }}>
+                <CardContent
+                  sx={{ p: { xs: 2, sm: 2.5 }, "&:last-child": { pb: 2.5 } }}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    gap={1}
                   >
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                      gap={1}
-                    >
-                      <Box flex={1} minWidth={0}>
-                        <Typography
-                          variant="subtitle2"
-                          color="primary.main"
-                          fontWeight={700}
-                          sx={{ wordBreak: "break-all" }}
-                        >
-                          {item.short_url}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            mt: 0.3,
-                            wordBreak: "break-all",
-                            fontSize: "0.78rem",
-                          }}
-                          noWrap
-                        >
-                          {item.long_url}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" flexShrink={0}>
-                        <Tooltip
-                          title={
-                            copiedCode === item.short_code ? "Copied!" : "Copy"
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="subtitle2"
+                        color="primary.main"
+                        fontWeight={700}
+                        sx={{ wordBreak: "break-all" }}
+                      >
+                        {item.short_url}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        noWrap
+                        sx={{ fontSize: "0.78rem", mt: 0.3 }}
+                      >
+                        {item.long_url}
+                      </Typography>
+                    </Box>
+                    <Box display="flex" flexShrink={0}>
+                      <Tooltip
+                        title={
+                          copiedCode === item.short_code ? "Copied!" : "Copy"
+                        }
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            handleCopy(item.short_url, item.short_code)
+                          }
+                          color={
+                            copiedCode === item.short_code
+                              ? "success"
+                              : "default"
                           }
                         >
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleCopy(item.short_url, item.short_code)
-                            }
-                            color={
-                              copiedCode === item.short_code
-                                ? "success"
-                                : "default"
-                            }
-                          >
-                            {copiedCode === item.short_code ? (
-                              <CheckIcon fontSize="small" />
-                            ) : (
-                              <ContentCopyIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Open">
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              window.open(item.short_url, "_blank")
-                            }
-                          >
-                            <OpenInNewIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Stats">
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              navigate(`/stats/${item.short_code}`)
-                            }
-                          >
-                            <BarChartIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                          {copiedCode === item.short_code ? (
+                            <CheckIcon fontSize="small" />
+                          ) : (
+                            <ContentCopyIcon fontSize="small" />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Open">
+                        <IconButton
+                          size="small"
+                          onClick={() => window.open(item.short_url, "_blank")}
+                        >
+                          <OpenInNewIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Stats">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/stats/${item.short_code}`)}
+                        >
+                          <BarChartIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {!user && (
                         <Tooltip title="Remove">
                           <IconButton
                             size="small"
@@ -197,9 +211,15 @@ const History = () => {
                             <DeleteOutlineIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                      </Box>
+                      )}
                     </Box>
-                    <Divider sx={{ my: 1.5 }} />
+                  </Box>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
                     <Chip
                       label="Active"
                       color="success"
@@ -207,12 +227,15 @@ const History = () => {
                       variant="outlined"
                       sx={{ fontSize: "0.7rem", height: 22 }}
                     />
-                  </CardContent>
-                </Card>
-              </Fade>
-            ))}
-          </Box>
-        )}
+                    <Typography variant="caption" color="text.secondary">
+                      {(item as any).clicks ?? 0} clicks
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Fade>
+          ))}
+        </Box>
       </Container>
     </Box>
   );
