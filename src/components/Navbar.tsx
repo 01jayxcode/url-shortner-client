@@ -217,7 +217,7 @@ const Navbar = () => {
           },
         }}
       >
-        <Box px={2} py={1.5}>
+        <Box px={2} py={1.5} sx={{ padding: 2 }}>
           <Typography variant="subtitle2" fontWeight={700} noWrap>
             {user?.name}
           </Typography>

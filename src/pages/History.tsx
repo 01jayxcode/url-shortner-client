@@ -67,6 +67,7 @@ const History = () => {
         bgcolor: "background.default",
         minHeight: "calc(100vh - 64px)",
         py: { xs: 4, md: 6 },
+        marginBottom: 4,
       }}
     >
       <Container maxWidth="sm">
@@ -225,7 +226,7 @@ const History = () => {
                       color="success"
                       size="small"
                       variant="outlined"
-                      sx={{ fontSize: "0.7rem", height: 22 }}
+                      sx={{ fontSize: "0.7rem", height: 22, marginLeft: 2 }}
                     />
                     <Typography variant="caption" color="text.secondary">
                       {(item as any).clicks ?? 0} clicks
