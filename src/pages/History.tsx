@@ -132,7 +132,7 @@ const History = () => {
             <Fade
               in
               key={item.short_code}
-              style={{ transitionDelay: `${i * 40}ms` }}
+              style={{ transitionDelay: `${i * 40}ms`, marginBottom: 2 }}
             >
               <Card sx={{ border: "1px solid #e2e8f0", boxShadow: "none" }}>
                 <CardContent
@@ -226,7 +226,7 @@ const History = () => {
                       color="success"
                       size="small"
                       variant="outlined"
-                      sx={{ fontSize: "0.7rem", height: 22, marginLeft: 2 }}
+                      sx={{ fontSize: "0.7rem", height: 22, marginRight: 2 }}
                     />
                     <Typography variant="caption" color="text.secondary">
                       {(item as any).clicks ?? 0} clicks
