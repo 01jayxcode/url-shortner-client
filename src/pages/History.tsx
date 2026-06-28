@@ -151,7 +151,7 @@ const History = () => {
                         fontWeight={700}
                         sx={{ wordBreak: "break-all" }}
                       >
-                        {`https://url-shortner-z1nl.onrender.com ${item.short_code}`}
+                        {`https://url-shortner-z1nl.onrender.com/${item.short_code}`}
                       </Typography>
                       <Typography
                         variant="body2"

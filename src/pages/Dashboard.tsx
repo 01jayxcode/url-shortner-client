@@ -133,7 +133,7 @@ const Dashboard = () => {
             size="small"
             variant="contained"
             onClick={() => navigate("/")}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, margin: 2 }}
           >
             + New link
           </Button>
@@ -191,7 +191,7 @@ const Dashboard = () => {
                         fontWeight={700}
                         sx={{ wordBreak: "break-all" }}
                       >
-                        {item.short_url}
+                        {`https://url-shortner-z1nl.onrender.com/${item.short_code}`}
                       </Typography>
                       <Typography
                         variant="body2"
